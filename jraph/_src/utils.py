@@ -706,7 +706,7 @@ def unpad_with_graphs(
   n_padding_node = get_number_of_padding_with_graphs_nodes(padded_graph)
   n_padding_edge = get_number_of_padding_with_graphs_edges(padded_graph)
 
-  unpadded_graph = gn_graph.GraphsTuple(
+  return gn_graph.GraphsTuple(
       n_node=padded_graph.n_node[:-n_padding_graph],
       n_edge=padded_graph.n_edge[:-n_padding_graph],
       nodes=tree.tree_map(lambda x: x[:-n_padding_node], padded_graph.nodes),
@@ -716,7 +716,6 @@ def unpad_with_graphs(
       senders=padded_graph.senders[:-n_padding_edge],
       receivers=padded_graph.receivers[:-n_padding_edge],
   )
-  return unpadded_graph
 
 
 def get_node_padding_mask(padded_graph: gn_graph.GraphsTuple) -> ArrayTree:
@@ -820,11 +819,7 @@ def concatenated_args(
     return wrapper
 
   # If the update function is passed, then decorate the update function.
-  if update:
-    return _decorate(update)
-
-  # Otherwise, return the decorator.
-  return _decorate
+  return _decorate(update) if update else _decorate
 
 
 def dtype_max_value(dtype):
@@ -873,9 +868,9 @@ def get_fully_connected_graph(n_node_per_graph: int,
     if n_node_per_graph * n_graph != num_node_features:
       raise ValueError(
           'Number of nodes is not equal to num_nodes_per_graph * n_graph.')
-  if global_features is not None:
-    if n_graph != jax.tree_leaves(global_features)[0].shape[0]:
-      raise ValueError('The number of globals is not equal to n_graph.')
+  if (global_features is not None
+      and n_graph != jax.tree_leaves(global_features)[0].shape[0]):
+    raise ValueError('The number of globals is not equal to n_graph.')
   senders = []
   receivers = []
   n_edge = []
@@ -923,7 +918,7 @@ def _get_graph_size(graphs_tuple):
 
 def _is_over_batch_size(graph, graph_batch_size):
   graph_size = _get_graph_size(graph)
-  return any([x > y for x, y in zip(graph_size, graph_batch_size)])
+  return any(x > y for x, y in zip(graph_size, graph_batch_size))
 
 
 def dynamically_batch(
@@ -966,8 +961,8 @@ def dynamically_batch(
     element_nodes, element_edges, element_graphs = _get_graph_size(element)
     if _is_over_batch_size(element, valid_batch_size):
       graph_size = element_nodes, element_edges, element_graphs
-      graph_size = {k: v for k, v in zip(_NUMBER_FIELDS, graph_size)}
-      batch_size = {k: v for k, v in zip(_NUMBER_FIELDS, valid_batch_size)}
+      graph_size = dict(zip(_NUMBER_FIELDS, graph_size))
+      batch_size = dict(zip(_NUMBER_FIELDS, valid_batch_size))
       raise RuntimeError('Found graph bigger than batch size. Valid Batch '
                          f'Size: {batch_size}, Graph Size: {graph_size}')
 
@@ -980,22 +975,20 @@ def dynamically_batch(
       num_accumulated_nodes = element_nodes
       num_accumulated_edges = element_edges
       num_accumulated_graphs = element_graphs
-      continue
-    else:
-      if ((num_accumulated_graphs + element_graphs > n_graph - 1) or
+    elif ((num_accumulated_graphs + element_graphs > n_graph - 1) or
           (num_accumulated_nodes + element_nodes > n_node - 1) or
           (num_accumulated_edges + element_edges > n_edge)):
-        batched_graph = batch_np(accumulated_graphs)
-        yield pad_with_graphs(batched_graph, n_node, n_edge, n_graph)
-        accumulated_graphs = [element]
-        num_accumulated_nodes = element_nodes
-        num_accumulated_edges = element_edges
-        num_accumulated_graphs = element_graphs
-      else:
-        accumulated_graphs.append(element)
-        num_accumulated_nodes += element_nodes
-        num_accumulated_edges += element_edges
-        num_accumulated_graphs += element_graphs
+      batched_graph = batch_np(accumulated_graphs)
+      yield pad_with_graphs(batched_graph, n_node, n_edge, n_graph)
+      accumulated_graphs = [element]
+      num_accumulated_nodes = element_nodes
+      num_accumulated_edges = element_edges
+      num_accumulated_graphs = element_graphs
+    else:
+      accumulated_graphs.append(element)
+      num_accumulated_nodes += element_nodes
+      num_accumulated_edges += element_edges
+      num_accumulated_graphs += element_graphs
 
   # We may still have data in batched graph.
   if accumulated_graphs:

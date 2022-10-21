@@ -108,8 +108,7 @@ def get_higgs_problem(min_n_photons: int, max_n_photons: int) -> Problem:
 
   # In order to jit compile our code, we have to pad the nodes and edges of
   # the GraphsTuple to a static shape.
-  graph = jraph.pad_with_graphs(graph, max_n_photons + 1,
-                                max_n_photons * max_n_photons)
+  graph = jraph.pad_with_graphs(graph, max_n_photons + 1, max_n_photons**2)
 
   return Problem(graph=graph, labels=label)
 

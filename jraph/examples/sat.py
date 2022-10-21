@@ -82,18 +82,11 @@ def get_2sat_problem(min_n_literals: int, max_n_literals: int) -> Problem:
   senders = []
   for literal_node1 in range(n_literals):
     for literal_node2 in range(literal_node1 + 1, n_literals):
-      senders.append(literal_node1)
-      senders.append(literal_node2)
-      # 1 indicates that the literal must be true for this constraint.
-      # 0 indicates that the literal must be false for this constraint.
-      # I.e. with literals a and b, we have the following possible constraints:
-      # 0, 0 -> a or b
-      # 1, 0 -> not a or b
-      # 0, 1 -> a or not b
-      # 1, 1 -> not a or not b
-      edges.append(1 if literal_node1 < n_literals_true else 0)
-      edges.append(1 if literal_node2 < n_literals_true else 0)
-
+      senders.extend((literal_node1, literal_node2))
+      edges.extend((
+          1 if literal_node1 < n_literals_true else 0,
+          1 if literal_node2 < n_literals_true else 0,
+      ))
   graph = jraph.GraphsTuple(
       n_node=np.asarray([n_node]),
       n_edge=np.asarray([2 * n_constraints]),

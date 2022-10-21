@@ -366,10 +366,10 @@ class ModelsTest(test_util.JaxTestCase):
         ('no_edges', batched_graphs_tuple._replace(edges=None)),
         ('empty_edges', batched_graphs_tuple._replace(edges=[])),
     ]:
-      with self.subTest(name + '_nojit'):
+      with self.subTest(f'{name}_nojit'):
         out = network_fn(graphs_tuple)
         self.assertAllClose(out, graphs_tuple, check_dtypes=True)
-      with self.subTest(name + '_jit'):
+      with self.subTest(f'{name}_jit'):
         out = jax.jit(network_fn)(graphs_tuple)
         self.assertAllClose(out, graphs_tuple, check_dtypes=True)
 
