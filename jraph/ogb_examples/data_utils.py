@@ -117,12 +117,11 @@ class DataReader:
     while True:
       # If not repeating, exit when we've cycled through all the graphs.
       # Only return graphs within the split.
-      if not self._repeat:
-        if idx == self.total_num_graphs:
-          return
-      else:
+      if self._repeat:
         # This will reset the index to 0 if we are at the end of the dataset.
         idx = idx % self.total_num_graphs
+      elif idx == self.total_num_graphs:
+        return
       if idx not in self._split_idx:
         idx += 1
         continue

@@ -677,18 +677,20 @@ class GraphTest(test_util.JaxTestCase):
     # due to the usage of `np.roll` (e.g. if you remove the self edges after
     # add_self_edges=True, the remaining edges are in a different order than if
     # add_self_edges=False).
-    send_recv_actual = {
-        (s, r) for s, r in zip(
+    send_recv_actual = set(
+        zip(
             np.asarray(graph_without_self_edges.senders),
-            np.asarray(graph_without_self_edges.receivers))}
+            np.asarray(graph_without_self_edges.receivers),
+        ))
 
     # Remove the self edges by hand from `graph_with_self_edges`
     mask_self_edges = (
         graph_with_self_edges.senders == graph_with_self_edges.receivers)
-    send_recv_expected = {
-        (s, r) for s, r in zip(
+    send_recv_expected = set(
+        zip(
             np.asarray(graph_with_self_edges.senders[~mask_self_edges]),
-            np.asarray(graph_with_self_edges.receivers[~mask_self_edges]))}
+            np.asarray(graph_with_self_edges.receivers[~mask_self_edges]),
+        ))
     self.assertSetEqual(send_recv_actual, send_recv_expected)
 
   @parameterized.named_parameters(('with_self_edges', True),

@@ -32,8 +32,7 @@ def conway_mlp(x):
   h = jnp.maximum(jnp.dot(w, x) + b, 0.)
   w = jnp.array([[2.0, -4.0, 2.0, -4.0, 2.0, -4.0]])
   b = jnp.array([-4.0])
-  y = jnp.maximum(jnp.dot(w, h) + b, 0.0)
-  return y
+  return jnp.maximum(jnp.dot(w, h) + b, 0.0)
 
 
 def conway_graph(size) -> jraph.GraphsTuple:
@@ -73,10 +72,7 @@ def display_graph(graph: jraph.GraphsTuple):
   size = int(np.sqrt(np.sum(graph.n_node)))
 
   def _display_node(node):
-    if node == 1.0:
-      return 'x'
-    else:
-      return ' '
+    return 'x' if node == 1.0 else ' '
 
   nodes = graph.nodes.copy()
   output = '\n'.join(

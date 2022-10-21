@@ -74,7 +74,7 @@ class ExplicitMLP(nn.Module):
   @nn.compact
   def __call__(self, inputs):
     x = inputs
-    for i, lyr in enumerate([nn.Dense(feat) for feat in self.features]):
+    for i, lyr in enumerate(nn.Dense(feat) for feat in self.features):
       x = lyr(x)
       if i != len(self.features) - 1:
         x = nn.relu(x)

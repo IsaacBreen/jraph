@@ -312,9 +312,9 @@ def GraphMapFeatures(embed_edge_fn: Optional[EmbedEdgeFn] = None,
     embed_global_fn: function used to embed the globals.
   """
   identity = lambda x: x
-  embed_edges_fn = embed_edge_fn if embed_edge_fn else identity
-  embed_nodes_fn = embed_node_fn if embed_node_fn else identity
-  embed_global_fn = embed_global_fn if embed_global_fn else identity
+  embed_edges_fn = embed_edge_fn or identity
+  embed_nodes_fn = embed_node_fn or identity
+  embed_global_fn = embed_global_fn or identity
 
   def Embed(graphs_tuple):
     return graphs_tuple._replace(
